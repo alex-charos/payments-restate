@@ -66,7 +66,7 @@ public class SSBTWorkflow {
                 // Check if external cancellation is received, start compensations if so
                 if ( ctx.promise(SSBT_CANCELLED).peek().isReady()) {
                     ctx.promise(SSBT_CANCELLED).awaitable().await();
-                    ctx.run("undto-to-pam", ()-> this.undoToPAM(req));
+                    ctx.run("undo-to-pam", ()-> this.undoToPAM(req));
                     ctx.set(STATUS, "REJECTING_AT_PROVIDER");
                     ctx.run("rejecting-at-provider", ()->this.rejectAtProvider(req));
                     ctx.set(STATUS, "REJECTED");
