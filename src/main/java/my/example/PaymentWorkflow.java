@@ -1,9 +1,8 @@
 package my.example;
 
-import dev.restate.sdk.Context;
 import dev.restate.sdk.JsonSerdes;
-import dev.restate.sdk.annotation.Handler;
-import dev.restate.sdk.annotation.Service;
+import dev.restate.sdk.WorkflowContext;
+import dev.restate.sdk.annotation.Workflow;
 import my.example.types.DepositRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,20 +15,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-@Service
-public class PaymentService {
+@Workflow
+public class PaymentWorkflow {
     private static final Logger logger =
-            LogManager.getLogger(PaymentService.class);
+            LogManager.getLogger(PaymentWorkflow.class);
+    @Workflow
+    public boolean run(WorkflowContext ctx, DepositRequest req) {
 
-
-
-    @Handler
-    public boolean depositwf(Context ctx, DepositRequest req) {
-        return PaymentServiceClient.fromContext(ctx).deposit(req).await();
-    }
-
-    @Handler
-    public boolean deposit(Context ctx, DepositRequest req) {
         logger.info("deposit");
         var amt = req.getAmount();
         logger.info("amount: " + amt);
@@ -75,8 +67,8 @@ public class PaymentService {
                     .GET()
                     .build();
 
-                HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-                System.out.println(response.body());
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
 
 
         } catch (URISyntaxException | IOException | InterruptedException e) {

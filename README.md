@@ -69,7 +69,7 @@ To run your services, do in this directory:
 Tell Restate where your services are running so it can forward requests to them:
 ```
 curl localhost:9070/deployments -H 'content-type: application/json' \
--d '{"uri": "http://host.docker.internal:9080"}'
+-d '{"uri": "http://localhost:9080"}'
 ```
 
 Now you can make requests to your services through Restate:
