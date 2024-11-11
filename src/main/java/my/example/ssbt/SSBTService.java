@@ -40,7 +40,7 @@ public class SSBTService {
     }
 
     @Handler
-    public void cacnel(Context ctx, WorkflowRequest workflowId) {
+    public void cancel(Context ctx, WorkflowRequest workflowId) {
         logger.info("cancel workflowId {}", workflowId);
         SSBTWorkflowClient.fromContext(ctx, workflowId.workflowId()).cancel().await();
     }

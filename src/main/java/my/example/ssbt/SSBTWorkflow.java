@@ -46,23 +46,26 @@ public class SSBTWorkflow {
         ctx.set(STATUS, "INITIATED");
         ctx.set(SSBT_STATE, "REQUESTED");
         logger.info("Workflow {} PEEK AT SSBT_CANCEL : {}", ctx.key(), ctx.promise(SSBT_CANCELLED).peek().isReady());
+
+        //Wait until trigger webhook is called (success or failure)
         String providerResponse = ctx.promise(PROVIDER_RESPONSE).awaitable().await();
-        Deque<Runnable> compensations = new ArrayDeque<>();
         ctx.set(STATUS, "RESPONSE_PROVIDED");
 
         if ("success".equals(providerResponse) ) {
+
+            // Check if external cancellation is received, start compensations if so
             if ( ctx.promise(SSBT_CANCELLED).peek().isReady()) {
                 ctx.promise(SSBT_CANCELLED).awaitable().await();
                 ctx.set(STATUS, "REJECTING_AT_PROVIDER");
                 ctx.run("rejecting-at-provider", ()->this.rejectAtProvider(req));
                 ctx.set(STATUS, "REJECTED");
             } else {
-                ctx.set(STATUS, "PAYMENT_SUCCESSFUL");
                 ctx.run("send-to-pam", ()-> this.sendToPAM(req));
-                ctx.set(STATUS, "PAM_SENT");
+
+
+                // Check if external cancellation is received, start compensations if so
                 if ( ctx.promise(SSBT_CANCELLED).peek().isReady()) {
                     ctx.promise(SSBT_CANCELLED).awaitable().await();
-                    ctx.set(STATUS, "UNDOING_AT_PAM");
                     ctx.run("undto-to-pam", ()-> this.undoToPAM(req));
                     ctx.set(STATUS, "REJECTING_AT_PROVIDER");
                     ctx.run("rejecting-at-provider", ()->this.rejectAtProvider(req));
@@ -79,6 +82,8 @@ public class SSBTWorkflow {
         return false;
     }
 
+
+    //Trigger external cancellation from here
     @Shared
     public void cancel(SharedWorkflowContext ctx) {
         logger.info("CANCEL requested for workflowId {}", ctx.key());
